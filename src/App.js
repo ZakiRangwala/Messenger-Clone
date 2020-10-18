@@ -6,6 +6,11 @@ import FlipMove from "react-flip-move";
 import SendIcon from "@material-ui/icons/Send";
 import IconButton from "@material-ui/core/IconButton";
 import axios from "./axios.js";
+import Pusher from "pusher-js";
+
+var pusher = new Pusher("ea3a5f965e31407fd5bf", {
+  cluster: "us2",
+});
 
 function App() {
   const [input, setInput] = useState("");
@@ -24,11 +29,24 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const channel = pusher.subscribe('messages');
+    channel.bind('newMessage', function (data) {
+      sync()
+    })
+
+  }, [username]);
+
+  useEffect(() => {
     setUsername(prompt("Please enter your name"));
   }, []);
 
   const sendMessage = (e) => {
     e.preventDefault();
+    axios.post("/save/message", {
+      username: username,
+      message: input,
+      timestamp: Date.now(),
+    });
     setInput("");
   };
 
